@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "@/lib/supabase";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+type Params = {
+  params: {
+    id: string;
+  };
+};
+
+export async function GET(request: Request, { params }: Params) {
   try {
     const id = params.id;
     
