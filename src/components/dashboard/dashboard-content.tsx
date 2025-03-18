@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { useAuthStore, User } from "@/lib/auth";
+import { useAuthStore } from "@/lib/auth";
 import { createSupabaseClient } from "@/lib/supabase";
 import { formatDate, getInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Activity, Bell, Calendar, Clock, Edit, ExternalLink, Info, Key, LogOut, Settings, User as UserIcon } from "lucide-react";
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
@@ -28,7 +27,7 @@ export function DashboardContent() {
   const { user, signOut } = useAuthStore();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [progressValue, setProgressValue] = useState(66);
+  const [progressValue] = useState(66);
 
   useEffect(() => {
     const fetchUserStats = async () => {

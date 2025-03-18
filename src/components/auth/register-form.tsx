@@ -88,9 +88,9 @@ export function RegisterForm() {
         console.log("Registration unsuccessful");
         setFormError("Registration failed. Please try again or use a different email.");
       }
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error("Registration error:", err);
-      setFormError(err.message || "An unexpected error occurred");
+      setFormError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }

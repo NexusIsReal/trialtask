@@ -77,9 +77,9 @@ export function LoginForm() {
         console.log("Login unsuccessful");
         setFormError("Login failed. Please check your credentials and try again.");
       }
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error("Login error:", err);
-      setFormError(err.message || "An unexpected error occurred");
+      setFormError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
     }

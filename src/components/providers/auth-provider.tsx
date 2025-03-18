@@ -32,7 +32,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
     
     init();
-  }, [loadUser]);
+  }, [loadUser, user]);
   
   // Handle redirections based on auth state
   useEffect(() => {

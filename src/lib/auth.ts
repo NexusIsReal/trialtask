@@ -12,10 +12,10 @@ export type User = {
 };
 
 // Define an error type to use instead of any
-type AuthError = {
+interface AuthError extends Error {
   message: string;
   [key: string]: unknown;
-};
+}
 
 interface AuthState {
   user: User | null;
@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>()(
             set({ error: 'Authentication failed', loading: false });
             return false;
           }
-        } catch (error: AuthError | unknown) {
+        } catch (error: unknown) {
           console.error('Login process error:', error);
           const errorMessage = error instanceof Error ? error.message : 'Login failed';
           set({ error: errorMessage, loading: false });
@@ -136,7 +136,7 @@ export const useAuthStore = create<AuthState>()(
             set({ error: 'Registration failed', loading: false });
             return false;
           }
-        } catch (error: AuthError | unknown) {
+        } catch (error: unknown) {
           console.error('Registration process error:', error);
           const errorMessage = error instanceof Error ? error.message : 'Registration failed';
           set({ error: errorMessage, loading: false });
@@ -151,7 +151,7 @@ export const useAuthStore = create<AuthState>()(
           const supabase = createSupabaseClient();
           await supabase.auth.signOut();
           set({ user: null, loading: false, error: null });
-        } catch (error: AuthError | unknown) {
+        } catch (error: unknown) {
           console.error('Sign out error:', error);
           const errorMessage = error instanceof Error ? error.message : 'Sign out failed';
           set({ error: errorMessage, loading: false });

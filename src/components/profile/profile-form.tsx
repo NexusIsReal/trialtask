@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuthStore, User } from "@/lib/auth";
+import { useAuthStore } from "@/lib/auth";
 import { createSupabaseClient } from "@/lib/supabase";
 
 // Define form schema with Zod
@@ -80,8 +80,8 @@ export function ProfileForm() {
       
       setSuccess("Profile updated successfully!");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Failed to update profile");
+    } catch (err: Error | unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setIsLoading(false);
     }
