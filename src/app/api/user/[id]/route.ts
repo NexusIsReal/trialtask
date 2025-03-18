@@ -2,15 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "@/lib/supabase";
 
-type Params = {
-  params: {
-    id: string;
-  };
-};
-
-export async function GET(request: Request, { params }: Params) {
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const id = params.id;
+    const { id } = params;
     
     if (!id) {
       return NextResponse.json(
