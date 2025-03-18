@@ -193,7 +193,7 @@ export function AuthForm() {
           className="text-sm"
           onClick={() => setIsLogin(!isLogin)}
         >
-          {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
+          {isLogin ? "Don&apos;t have an account? Register" : "Already have an account? Login"}
         </Button>
       </div>
     </div>

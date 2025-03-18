@@ -11,12 +11,6 @@ export type User = {
   updated_at?: string;
 };
 
-// Define an error type to use instead of any
-interface AuthError extends Error {
-  message: string;
-  [key: string]: unknown;
-}
-
 interface AuthState {
   user: User | null;
   loading: boolean;
