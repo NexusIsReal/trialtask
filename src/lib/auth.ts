@@ -11,6 +11,12 @@ export type User = {
   updated_at?: string;
 };
 
+// Define an error type to use instead of any
+type AuthError = {
+  message: string;
+  [key: string]: unknown;
+};
+
 interface AuthState {
   user: User | null;
   loading: boolean;
@@ -25,7 +31,7 @@ interface AuthState {
 // Create auth store with persistence
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       loading: false,
       error: null,
@@ -74,9 +80,10 @@ export const useAuthStore = create<AuthState>()(
             set({ error: 'Authentication failed', loading: false });
             return false;
           }
-        } catch (error: any) {
+        } catch (error: AuthError | unknown) {
           console.error('Login process error:', error);
-          set({ error: error.message || 'Login failed', loading: false });
+          const errorMessage = error instanceof Error ? error.message : 'Login failed';
+          set({ error: errorMessage, loading: false });
           return false;
         }
       },
@@ -129,9 +136,10 @@ export const useAuthStore = create<AuthState>()(
             set({ error: 'Registration failed', loading: false });
             return false;
           }
-        } catch (error: any) {
+        } catch (error: AuthError | unknown) {
           console.error('Registration process error:', error);
-          set({ error: error.message || 'Registration failed', loading: false });
+          const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+          set({ error: errorMessage, loading: false });
           return false;
         }
       },
@@ -143,9 +151,10 @@ export const useAuthStore = create<AuthState>()(
           const supabase = createSupabaseClient();
           await supabase.auth.signOut();
           set({ user: null, loading: false, error: null });
-        } catch (error: any) {
+        } catch (error: AuthError | unknown) {
           console.error('Sign out error:', error);
-          set({ error: error.message || 'Sign out failed', loading: false });
+          const errorMessage = error instanceof Error ? error.message : 'Sign out failed';
+          set({ error: errorMessage, loading: false });
         }
       },
       
@@ -185,7 +194,7 @@ export const useAuthStore = create<AuthState>()(
             console.log('No authenticated user found');
             set({ user: null, loading: false });
           }
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Load user error:', error);
           set({ user: null, loading: false });
         }
