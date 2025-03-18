@@ -3,23 +3,23 @@ import { createClient } from "@supabase/supabase-js";
 import { Database } from "@/lib/supabase";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: Request,
+  context: { params: { id: string } }
 ) {
+  const id = context.params.id;
+    
+  if (!id) {
+    return NextResponse.json(
+      { error: "User ID is required" },
+      { status: 400 }
+    );
+  }
+  
   try {
-    const { id } = params;
-    
-    if (!id) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
-    
-    // Create Supabase client with admin privileges
+    // Create Supabase client
     const supabase = createClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
     );
     
     // Get user details
@@ -44,7 +44,7 @@ export async function GET(
       );
     }
     
-    // Remove sensitive information if needed
+    // Process user data
     const userResponse = {
       id: user.id,
       email: user.email,
