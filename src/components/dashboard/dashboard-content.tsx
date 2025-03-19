@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/auth";
 import { createSupabaseClient } from "@/lib/supabase";
@@ -28,44 +28,99 @@ export function DashboardContent() {
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [progressValue] = useState(66);
+  const statsLoaded = useRef(false); // Ref to track if stats have been loaded
 
   useEffect(() => {
-    const fetchUserStats = async () => {
-      if (!user) return;
-      
-      setIsLoading(true);
-      
-      try {
-        const supabase = createSupabaseClient();
-        const { data: authData } = await supabase.auth.getUser();
-        
-        if (authData?.user) {
-          // Calculate account age
-          const createdAt = user.created_at ? new Date(user.created_at) : new Date();
-          const accountAge = Math.floor(
-            (new Date().getTime() - createdAt.getTime()) / 
-            (1000 * 60 * 60 * 24)
-          );
+    // Only fetch stats if not already loaded and user exists
+    if (!statsLoaded.current && user && user.id) {
+      const fetchUserStats = async () => {
+        try {
+          console.log("Fetching user stats...");
+          const supabase = createSupabaseClient();
+          const { data: authData } = await supabase.auth.getUser();
           
-          setUserStats({
-            lastLogin: new Date().toISOString(),
-            accountAge,
-          });
+          if (authData?.user) {
+            // Calculate account age
+            const createdAt = user.created_at ? new Date(user.created_at) : new Date();
+            const accountAge = Math.floor(
+              (new Date().getTime() - createdAt.getTime()) / 
+              (1000 * 60 * 60 * 24)
+            );
+            
+            setUserStats({
+              lastLogin: new Date().toISOString(),
+              accountAge,
+            });
+            
+            // Mark as loaded
+            statsLoaded.current = true;
+          }
+        } catch (error) {
+          console.error("Error fetching user stats:", error);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching user stats:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      };
 
-    fetchUserStats();
-  }, [user]);
+      fetchUserStats();
+    } else if (user && user.id && !isLoading && !userStats) {
+      // If user exists but stats haven't been loaded yet (after component remount)
+      setIsLoading(true);
+    } else if (user && userStats) {
+      // If we already have user stats, just ensure loading is false
+      setIsLoading(false);
+    }
+  }, [user, userStats, isLoading]);
 
+  // Early return if no user
   if (!user) return null;
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  // Prepare content for the stats card
+  const renderStatsContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center h-28">
+          <p className="text-sm text-muted-foreground">Loading stats...</p>
+        </div>
+      );
+    } 
+    
+    if (userStats) {
+      return (
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-medium">Profile Completion</p>
+              <Badge variant="outline">{progressValue}%</Badge>
+            </div>
+            <Progress value={progressValue} className="h-2" />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Last login</p>
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                <p className="text-sm">{formatDate(userStats.lastLogin)}</p>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Account age</p>
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                <p className="text-sm">{userStats.accountAge} days</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return <p className="text-sm text-muted-foreground">No stats available</p>;
   };
 
   return (
@@ -140,40 +195,7 @@ export function DashboardContent() {
             <CardDescription>Your account activity</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center h-28">
-                <p className="text-sm text-muted-foreground">Loading stats...</p>
-              </div>
-            ) : userStats ? (
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-sm font-medium">Profile Completion</p>
-                    <Badge variant="outline">{progressValue}%</Badge>
-                  </div>
-                  <Progress value={progressValue} className="h-2" />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Last login</p>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-                      <p className="text-sm">{formatDate(userStats.lastLogin)}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Account age</p>
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                      <p className="text-sm">{userStats.accountAge} days</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No stats available</p>
-            )}
+            {renderStatsContent()}
           </CardContent>
         </Card>
         
